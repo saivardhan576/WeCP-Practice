@@ -10,7 +10,8 @@
             ],
             "postDebugTask": "Test App",
             "type": "pwa-node"
-        }, {
+        },
+        {
             "name": "Submit App",
             "program": "${workspaceFolder}/__m.js",
             "request": "launch",
@@ -19,6 +20,16 @@
             ],
             "postDebugTask": "Submit App",
             "type": "pwa-node"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-SecurityApplication<security>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.springsecurity.security.SecurityApplication",
+            "projectName": "security",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
         }
     ]
 }
