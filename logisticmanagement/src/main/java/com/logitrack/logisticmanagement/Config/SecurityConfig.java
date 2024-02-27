@@ -1,5 +1,4 @@
-package com.springsecurity.security.Config;
-
+package com.logitrack.logisticmanagement.Config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -8,28 +7,36 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.springsecurity.security.Jwt.JwtAuthFilter;
 
+import com.logitrack.logisticmanagement.Jwt.JwtRequestFilter;
+import com.logitrack.logisticmanagement.Service.UserService;
+ 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-public class SecurityConfig {
+public class SecurityConfig{
+    private final UserDetailsService userDetailsService;
+    private final JwtRequestFilter jwtRequestFilter;
+    private final PasswordEncoder passwordEncoder;
+
     @Autowired
-    private JwtAuthFilter authFilter;
+    public SecurityConfig(UserDetailsService userDetailsService,
+                          JwtRequestFilter jwtRequestFilter,
+                          PasswordEncoder passwordEncoder) {
+        this.userDetailsService = userDetailsService;
+        this.jwtRequestFilter = jwtRequestFilter;
+        this.passwordEncoder = passwordEncoder;
+    }
+ 
 
     @Bean
     //authentication
@@ -43,46 +50,48 @@ public class SecurityConfig {
 //                .roles("USER","ADMIN","HR")
 //                .build();
 //        return new InMemoryUserDetailsManager(admin, user);
-        return new UserInfoUserDetailsService();
+        return new UserService();
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http.csrf().disable()
-                .authorizeHttpRequests()
-                .requestMatchers("/products/new","/products/authenticate").permitAll()
-                .and()
-                .authorizeHttpRequests().requestMatchers("/products/**")
-                .authenticated().and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
+        return http.csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(requests -> requests
+                        .requestMatchers("/api/register", "/api/login").permitAll())
+                .authorizeHttpRequests(requests -> requests.requestMatchers("/api/business/**", "/api/customer/**", "/api/driver/**")
+                        .authenticated())
+                .sessionManagement(management -> management
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
-                .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
+    
+    // @Bean
+    // public PasswordEncoder passwordEncoder() {
+    //     return new BCryptPasswordEncoder();
+    // }
     @Bean
     public AuthenticationProvider authenticationProvider(){
         DaoAuthenticationProvider authenticationProvider=new DaoAuthenticationProvider();
         authenticationProvider.setUserDetailsService(userDetailsService());
-        authenticationProvider.setPasswordEncoder(passwordEncoder());
+        authenticationProvider.setPasswordEncoder(passwordEncoder);
         return authenticationProvider;
     }
-
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
-
-}
-
-// @Override
+ 
+    
+ 
+    // @Override
+    // protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+    //     auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder);
+    // }
+ 
+    // @Override
     // protected void configure(HttpSecurity http) throws Exception {
     //     http.cors().and().csrf().disable()
     //             .authorizeRequests()
@@ -104,3 +113,5 @@ public class SecurityConfig {
     //     http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
     // }
  
+    
+}

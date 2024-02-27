@@ -7,5 +7,6 @@
   "git.enabled": true,
   "java.project.referencedLibraries": [
     "lib/**/*.jar"
-  ]
+  ],
+  "java.configuration.updateBuildConfiguration": "interactive"
 }

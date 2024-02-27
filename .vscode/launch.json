@@ -30,6 +30,16 @@
             "projectName": "security",
             "args": "",
             "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-LogisticmanagementApplication<logisticmanagement>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.logitrack.logisticmanagement.LogisticmanagementApplication",
+            "projectName": "logisticmanagement",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
         }
     ]
 }
